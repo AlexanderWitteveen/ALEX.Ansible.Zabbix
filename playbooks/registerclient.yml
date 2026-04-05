@@ -1,0 +1,9 @@
+---
+
+- name: "Playbook: Register Client"
+  hosts: "{{ args_host }}"
+  gather_facts: false
+
+  tasks:
+    - ansible.builtin.include_role:
+        name: alex.zabbix.registerclient

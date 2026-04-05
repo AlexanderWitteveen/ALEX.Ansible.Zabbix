@@ -1,0 +1,22 @@
+---
+
+- name: Upload files Zabbix Web
+  ansible.builtin.template:
+    src: "{{ item.source }}"
+    dest: "{{ item.target }}"
+    owner: "{{ prop_admin_username }}"
+    group: "{{ prop_admin_groupname }}"
+    mode: '0777'
+  loop:
+    - source: zabbix.my.yml.j2
+      target: "/{{ prop_basename }}/docker/zabbix.yml"
+    - source: zabbix.backup.sh.j2
+      target: "/{{ prop_basename }}/scripts/zabbix.backup.sh"
+    - source: zabbix.restore.sh.j2
+      target: "/{{ prop_basename }}/scripts/zabbix.restore.sh"
+    - source: zabbix.init.sh.j2
+      target: "/{{ prop_basename }}/scripts/zabbix.init.sh"
+  vars:
+    ansible_connection: ssh
+    ansible_host: "{{ prop_ipaddress }}"
+  become: true

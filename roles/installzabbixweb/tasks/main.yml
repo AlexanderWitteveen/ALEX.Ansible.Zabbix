@@ -1,0 +1,56 @@
+---
+
+- ansible.builtin.include_role: # Install Node-RED
+    name: alex.nodered.installnodered
+
+- ansible.builtin.include_role: # create datafolders
+    name: alex.debian13.datafolders
+  vars:
+    args_datafolder_local: 
+      - name: zabbix/defaults/nginx-ssl
+      - name: zabbix/defaults/web-data
+      - name: zabbix/data
+    args_datafolder_remote:
+      - name: backup
+        service: zabbix
+        mount: data-{{ prop_environment }}
+
+- ansible.builtin.copy:
+    src: /{{ prop_basename }}/certificates/host.cer
+    dest: "/{{ prop_basename }}/zabbix/defaults/nginx-ssl/ssl.crt"
+    remote_src: yes
+  vars:
+    ansible_connection: "{{ prop_ansible_connection }}"
+    ansible_host: "{{ prop_ipaddress }}"
+  become: true
+
+- ansible.builtin.copy:
+    src: /{{ prop_basename }}/certificates/host.key
+    dest: "/{{ prop_basename }}/zabbix/defaults/nginx-ssl/ssl.key"
+    remote_src: yes
+  vars:
+    ansible_connection: "{{ prop_ansible_connection }}"
+    ansible_host: "{{ prop_ipaddress }}"
+  become: true
+
+- ansible.builtin.shell: |
+    openssl dhparam -dsaparam -out /{{ prop_basename }}/zabbix/defaults/nginx-ssl/dhparam.pem 2048
+  args:
+    executable: /bin/bash
+  vars:
+    ansible_connection: "{{ prop_ansible_connection }}"
+    ansible_host: "{{ prop_ipaddress }}"
+  become: true
+
+- ansible.builtin.include_role: # upload files
+    name: alex.zabbix.uploadfilesweb
+
+- ansible.builtin.include_role: # docker compose Zabbix Web
+    name: alex.debian13.dockercompose
+  vars:
+    args_run_scripts:
+      - /{{ prop_basename }}/scripts/zabbix.restore.sh
+      - /{{ prop_basename }}/scripts/zabbix.init.sh
+    args_docker_images:
+      - file: zabbix/zabbixwebmy.7.4.8-alpine.base.tar
+    args_compose_file: "/{{ prop_basename }}/docker/zabbix.yml"

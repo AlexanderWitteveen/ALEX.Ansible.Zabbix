@@ -1,0 +1,31 @@
+---
+
+- ansible.builtin.include_role: # Install Node-RED
+    name: alex.nodered.installnodered
+
+- ansible.builtin.include_role: # Install MariaDB
+    name: alex.mariadb.installmariadb
+
+- ansible.builtin.include_role: # create datafolders
+    name: alex.debian13.datafolders
+  vars:
+    args_datafolder_local: 
+      - name: zabbix/data/nginx-ssl
+      - name: zabbix/data/server-data
+      - name: zabbix/defaults
+    args_datafolder_remote:
+      - name: backup
+        service: zabbix
+        mount: data-{{ prop_environment }}
+
+- ansible.builtin.include_role: # upload files
+    name: alex.zabbix.uploadfilesserver
+
+- ansible.builtin.include_role: # docker compose Zabbix Server
+    name: alex.debian13.dockercompose
+  vars:
+    args_run_scripts:
+      - /{{ prop_basename }}/scripts/zabbix.restore.sh
+    args_docker_images:
+      - file: zabbix/zabbixservermy.7.4.8-alpine.base.tar
+    args_compose_file: "/{{ prop_basename }}/docker/zabbix.yml"

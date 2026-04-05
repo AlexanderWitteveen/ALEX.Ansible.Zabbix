@@ -1,0 +1,179 @@
+---
+
+- name: Get template list from Zabbix API
+  ansible.builtin.shell: |
+    import requests
+    
+    ipaddress = "{{ hostvars[prop_zabbix_web_name]['prop_ipaddress'] }}"
+    api = "{{ hostvars[prop_zabbix_server_name]['prop_zabbix_api'] }}"
+    url = f"https://{ipaddress}:8443/api_jsonrpc.php"
+    headers = {"Authorization": f"Bearer {api}"}
+    ca = "/etc/ssl/certs"
+
+    requestdata = {
+        "jsonrpc": "2.0",
+        "method": "template.get",
+        "params": {
+            "output": ["templateid"],
+            "filter": {
+                "name": ["Linux by Zabbix agent", "Zabbix server health"]
+            }
+        },
+        "id": 1
+    }
+    response = requests.post(url, json=requestdata, headers=headers, verify=ca)
+    print(response.json().get("result"))
+
+    if len(response.json().get("result")) < len(requestdata["params"]["filter"]["name"]):
+      print("Template list not complete")
+      exit(1)
+  register:
+    templatesjsonstring
+  args:
+    executable: /alex/python/venv/bin/python3
+  connection: local
+  become: false
+
+- name: Get host group list from Zabbix API
+  ansible.builtin.shell: |
+    import requests
+    
+    ipaddress = "{{ hostvars[prop_zabbix_web_name]['prop_ipaddress'] }}"
+    api = "{{ hostvars[prop_zabbix_server_name]['prop_zabbix_api'] }}"
+    url = f"https://{ipaddress}:8443/api_jsonrpc.php"
+    headers = {"Authorization": f"Bearer {api}"}
+    ca = "/etc/ssl/certs"
+
+    requestdata = {
+        "jsonrpc": "2.0",
+        "method": "hostgroup.get",
+        "params": {
+            "filter": {
+                "name": ["Linux servers"]
+            }
+        },
+        "id": 1
+    }
+    response = requests.post(url, json=requestdata, headers=headers, verify=ca)
+    print(response.json().get("result"))
+
+    if len(response.json().get("result")) < len(requestdata["params"]["filter"]["name"]):
+      print("Host group list not complete")
+      exit(1)
+  register:
+    hostgroupsjsonstring
+  args:
+    executable: /alex/python/venv/bin/python3
+  connection: local
+  become: false
+
+- name: Register new host in Zabbix
+  ansible.builtin.shell: |
+    import json
+    import requests
+
+    hostgroupsjsonstring = "{{ hostgroupsjsonstring.stdout }}".replace("'", '"')
+    hostgroupjson = json.loads(hostgroupsjsonstring)
+
+    ipaddress = "{{ hostvars[prop_zabbix_web_name]['prop_ipaddress'] }}"
+    api = "{{ hostvars[prop_zabbix_server_name]['prop_zabbix_api'] }}"
+    url = f"https://{ipaddress}:8443/api_jsonrpc.php"
+    headers = {"Authorization": f"Bearer {api}"}
+    ca = "/etc/ssl/certs"
+
+    requestdata = {
+        "jsonrpc": "2.0",
+        "method": "host.get",
+        "params": {
+            "output": ["hostid", "name"],
+            "filter": {
+                "name": "{{ prop_hostname }}"
+            }
+        },
+        "id": 1
+    }
+
+    response = requests.post(url, json=requestdata, headers=headers, verify=ca)
+    if response.json().get("result") != None and len(response.json().get("result")) > 0:
+      print("Host already exists")
+      exit(0)
+
+    print("Host does not exist")
+    requestdata = {
+        "jsonrpc": "2.0",
+        "method": "host.create",
+        "params": {
+            "host": "{{ prop_hostname }}",
+            "interfaces": [
+                {
+                    "type": 1,
+                    "main": 1,
+                    "useip": 1,
+                    "ip": "{{ prop_ipaddress }}",
+                    "dns": "",
+                    "port": "10050"
+                }
+            ],
+            "groups": [],
+            "templates": []
+        },
+    }
+    requestdata["params"]["groups"] = [{"groupid": group["groupid"]} for group in hostgroupjson]
+    response = requests.post(url, json=requestdata, headers=headers, verify=ca)
+  args:
+    executable: /alex/python/venv/bin/python3
+  connection: local
+  become: false
+
+- name: Update host in Zabbix
+  ansible.builtin.shell: |
+    import json
+    import requests
+
+    templatesjsonstring = "{{ templatesjsonstring.stdout }}".replace("'", '"')
+    templatejson = json.loads(templatesjsonstring)
+
+    hostgroupsjsonstring = "{{ hostgroupsjsonstring.stdout }}".replace("'", '"')
+    hostgroupjson = json.loads(hostgroupsjsonstring)
+
+    ipaddress = "{{ hostvars[prop_zabbix_web_name]['prop_ipaddress'] }}"
+    api = "{{ hostvars[prop_zabbix_server_name]['prop_zabbix_api'] }}"
+    url = f"https://{ipaddress}:8443/api_jsonrpc.php"
+    headers = {"Authorization": f"Bearer {api}"}
+    ca = "/etc/ssl/certs"
+
+    requestdata = {
+        "jsonrpc": "2.0",
+        "method": "host.get",
+        "params": {
+            "output": ["hostid", "name"],
+            "filter": {
+                "name": "{{ prop_hostname }}"
+            }
+        },
+        "id": 1
+    }
+
+    response = requests.post(url, json=requestdata, headers=headers, verify=ca)
+    if response.json().get("result") == None or len(response.json().get("result")) == 0:
+      print("Host does not exist")
+
+    requestdata = {
+        "jsonrpc": "2.0",
+        "method": "host.update",
+        "params": {
+            "hostid": response.json().get("result")[0].get("hostid"),
+            "host": "{{ prop_hostname }}",
+            "groups": [],
+            "templates": []
+        },
+        "id": 1
+    }
+    requestdata["params"]["groups"] = [{"groupid": group["groupid"]} for group in hostgroupjson]
+    requestdata["params"]["templates"] = [{"templateid": template["templateid"]} for template in templatejson]
+    response = requests.post(url, json=requestdata, headers=headers, verify=ca)
+    print(response.text)
+  args:
+    executable: /alex/python/venv/bin/python3
+  connection: local
+  become: false

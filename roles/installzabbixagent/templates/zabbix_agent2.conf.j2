@@ -1,0 +1,17 @@
+PidFile=/run/zabbix/zabbix_agent2.pid
+LogFile=/var/log/zabbix/zabbix_agent2.log
+
+Server={{ prop_zabbix_server }}
+ListenIP=0.0.0.0
+ServerActive={{ prop_zabbix_server }}
+
+Hostname={{ prop_hostname }}
+
+PluginSocket=/run/zabbix/agent.plugin.sock
+ControlSocket=/run/zabbix/agent.sock
+
+Include=/etc/zabbix/zabbix_agent2.d/plugins.d/*.conf
+Include=/etc/zabbix/zabbix_agent2.d/*.conf
+# Include=/usr/local/etc/zabbix_agent2.userparams.conf
+# Include=/usr/local/etc/zabbix_agent2.conf.d/
+# Include=/usr/local/etc/zabbix_agent2.conf.d/*.conf

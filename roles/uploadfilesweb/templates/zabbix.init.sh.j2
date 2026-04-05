@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ -z "$(ls -A /{{ prop_basename}}/zabbix/data)" ]; then
+    mkdir -p /{{ prop_basename }}/zabbix/data/nginx-ssl
+    cp /{{ prop_basename }}/zabbix/defaults/nginx-ssl/* /{{ prop_basename }}/zabbix/data/nginx-ssl/
+fi
+
+# chmod -R 777 /{{ prop_basename }}/zabbix/data
+

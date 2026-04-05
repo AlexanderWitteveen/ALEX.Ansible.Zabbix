@@ -1,0 +1,67 @@
+---
+
+- ansible.builtin.shell: |
+    import requests
+    
+    url = "https://{{ prop_zabbix_web }}:8443/api_jsonrpc.php"
+    # requestdata = {
+    #     "jsonrpc": "2.0",
+    #     "method": "apiinfo.version",
+    #     "params": {},
+    #     "id": 1
+    # }
+    requestdata = {
+        "jsonrpc": "2.0",
+        "method": "user.login",
+        "params": {
+            "username": "Admin",
+            "password": "zabbix"
+        },
+        "id": 1
+    }
+    response = requests.post(url, json=requestdata, verify)
+    print(response.json())
+
+    if response.json().get("result") is None:
+      print("Login failed")
+      exit(1)
+
+    bearer_token = response.json().get("result")
+    headers = {"Authorization": f"Bearer {bearer_token}"}
+
+    requestdata = {
+        "jsonrpc": "2.0",
+        "method": "token.get",
+        "params": {
+            "output": "extend",
+            "tokenids": "1"
+        },
+        "id": 1
+    }
+    response = requests.post(url, json=requestdata, headers=headers)
+    print(response.json())
+
+    if response.json().get("result") != None:
+      if response.json().get("result")[0].get("name") == "Admin":
+        print("Token is valid")
+      else:
+        print("Token is invalid")
+        exit(1)
+
+    requestdata = {
+        "jsonrpc": "2.0",
+        "method": "user.logout",
+        "params": [],
+        "id": 1
+    }
+    response = requests.post(url, json=requestdata, headers=headers)
+    print(response.json())
+    
+    if response.json().get("result") == True:
+      exit(0)
+    else:
+      exit(1)
+  args:
+    executable: /alex/python/venv/bin/python3
+  connection: local
+  become: false

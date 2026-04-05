@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Remove current Zabbix data directory contents
+if [ -n "$(ls -A /{{ prop_basename}}/zabbix/data)" ]; then
+    rm -r -f /{{ prop_basename}}/zabbix/data/*
+fi
+
+# Restore latest backup of Zabbix data directory
+if [ -n "$(ls -A /mnt/data-{{ prop_environment }}/zabbix/{{ prop_hostname }}/backup)" ]; then
+    ls -tr /mnt/data-{{ prop_environment }}/zabbix/{{ prop_hostname }}/backup | tail -n 1 | xargs -I {} unzip -o /mnt/data-{{ prop_environment }}/zabbix/{{ prop_hostname }}/backup/{} -d /
+fi

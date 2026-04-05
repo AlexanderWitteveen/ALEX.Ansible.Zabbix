@@ -1,0 +1,9 @@
+---
+
+- name: "Playbook: Rebuild Zabbix ServerVM"
+  hosts: "{{ args_host }}"
+  gather_facts: false
+
+  tasks:
+    - ansible.builtin.include_role:
+        name: alex.zabbix.rebuildservervm

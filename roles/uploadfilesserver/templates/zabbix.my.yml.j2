@@ -1,0 +1,22 @@
+name: zabbix
+
+services:
+  zabbixserver:
+    image: alex/zabbixservermy:base
+    pull_policy: never
+    environment:
+      - TZ=Europe/Amsterdam
+      - DB_SERVER_HOST={{ prop_ipaddress }}
+      - MYSQL_ROOT_PASSWORD={{ prop_admin_password }}
+      - MYSQL_USER={{ prop_admin_username }}
+      - MYSQL_PASSWORD={{ prop_admin_password }}
+      - MYSQL_DATABASE=zabbix
+      - ZBX_DEBUGLEVEL=3
+      - ZBX_ALLOWUNSUPPORTEDDBVERSIONS=1
+    ports:
+      - "10051:10051"
+    volumes:
+      - type: bind
+        source: /{{ prop_basename }}/zabbix/data/server-data
+        target: /data
+    restart: unless-stopped

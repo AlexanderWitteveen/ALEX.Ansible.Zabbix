@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Create backup of Zabbix data directory
+if [ -n "$(ls -A /{{ prop_basename}}/zabbix/data)" ]; then
+    zip -r /mnt/data-{{ prop_environment }}/zabbix/{{ prop_hostname }}/backup/zabbix-backup-$(date +%Y%m%d%H%M%S).zip /{{ prop_basename}}/zabbix/data/*
+fi
+
+# Keep only last 5 backups
+max=5
+count=$( ls -t /mnt/data-{{ prop_environment }}/zabbix/{{ prop_hostname }}/backup | wc -l )
+remove=$(( count - max ))
+if [ $count -gt $max ]; then
+    for file in $( ls -t /mnt/data-{{ prop_environment }}/zabbix/{{ prop_hostname }}/backup | tail -n $remove ); do
+        rm -f /mnt/data-{{ prop_environment }}/zabbix/{{ prop_hostname }}/backup/$file
+    done
+fi

@@ -1,0 +1,27 @@
+name: zabbix
+
+services:
+  zabbixweb:
+    image: alex/zabbixwebmy:base
+    pull_policy: never
+    environment:
+      - TZ=Europe/Amsterdam
+      - DB_SERVER_HOST={{ prop_zabbix_server }}
+      - MYSQL_USER={{ prop_admin_username }}
+      - MYSQL_PASSWORD={{ prop_admin_password }}
+      - MYSQL_DATABASE=zabbix
+      - ZBX_DEBUGLEVEL=3
+      - ZBX_ALLOWUNSUPPORTEDDBVERSIONS=1
+      - ZBX_SERVER_HOST={{ prop_zabbix_server }}
+      - ZBX_SERVER_NAME=zabbix-{{ prop_environment }}
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    volumes:
+      - type: bind
+        source: /{{ prop_basename }}/zabbix/data/web-data
+        target: /data
+      - type: bind
+        source: /{{ prop_basename }}/zabbix/data/nginx-ssl
+        target: /etc/ssl/nginx
+    restart: unless-stopped

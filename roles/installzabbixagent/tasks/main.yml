@@ -1,0 +1,70 @@
+---
+
+- ansible.builtin.include_role: # knownoshost
+    name: alex.base.knownoshost
+
+- name: Creates directory
+  ansible.builtin.file:
+    path: "/etc/zabbix"
+    state: directory
+  vars:
+    ansible_connection: ssh
+    ansible_host: "{{ prop_ipaddress }}"
+  become: true
+
+- name: Upload files Zabbix Agent
+  ansible.builtin.template:
+    src: "{{ item.source }}"
+    dest: "{{ item.target }}"
+    owner: "{{ prop_admin_username }}"
+    group: "{{ prop_admin_groupname }}"
+    mode: '0777'
+  loop:
+    - source: zabbix_agent2.conf.j2
+      target: "/etc/zabbix/zabbix_agent2.conf"
+  vars:
+    ansible_connection: ssh
+    ansible_host: "{{ prop_ipaddress }}"
+  become: true
+
+- name: Download Archive Deb
+  ansible.builtin.get_url:
+    url: https://repo.zabbix.com/zabbix/7.4/release/debian/pool/main/z/zabbix-release/zabbix-release_latest_7.4+debian13_all.deb
+    dest: /tmp/zabbix-release.deb
+    mode: '0440'
+  vars:
+    ansible_connection: "{{ prop_ansible_connection }}"
+    ansible_host: "{{ prop_ipaddress }}"
+  become: true
+
+- name: Install a list of packages
+  apt:
+    deb: /tmp/zabbix-release.deb
+    state: present
+    update_cache: yes
+  vars:
+    ansible_connection: "{{ prop_ansible_connection }}"
+    ansible_host: "{{ prop_ipaddress }}"
+  become: true
+
+- name: Install a list of packages
+  apt:
+    name:
+      - zabbix-agent2
+    state: present
+    update_cache: yes
+  vars:
+    ansible_connection: "{{ prop_ansible_connection }}"
+    ansible_host: "{{ prop_ipaddress }}"
+  become: true
+
+- name: Restart service
+  ansible.builtin.systemd_service:
+    state: restarted
+    daemon_reload: true
+    name: zabbix-agent2
+  vars:
+    ansible_connection: "{{ prop_ansible_connection }}"
+    ansible_host: "{{ prop_ipaddress }}"
+  become: true
+
