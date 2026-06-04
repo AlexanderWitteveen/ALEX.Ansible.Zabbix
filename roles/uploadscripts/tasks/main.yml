@@ -1,0 +1,16 @@
+---
+
+- name: Upload script files to Zabbix Server
+  ansible.builtin.template:
+    src: "{{ item.source }}"
+    dest: "{{ item.target }}"
+    owner: "{{ prop_admin_username }}"
+    group: "{{ prop_admin_groupname }}"
+    mode: '0777'
+  loop:
+    - source: zabbix.script.hello.py.j2
+      target: "/{{ prop_basename }}/scripts/zabbix.script.hello.py"
+  vars:
+    ansible_connection: ssh
+    ansible_host: "{{ prop_ipaddress }}"
+  become: true

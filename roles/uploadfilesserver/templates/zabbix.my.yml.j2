@@ -19,4 +19,7 @@ services:
       - type: bind
         source: /{{ prop_basename }}/zabbix/data/server-data
         target: /data
+      - type: bind
+        source: /{{ prop_basename }}
+        target: /{{ prop_basename }}
     restart: unless-stopped

@@ -1,0 +1,5 @@
+import requests
+
+response=requests.post("http://10.20.20.36:1880/log", data={"message": "Hello from Zabbix Script!"})
+
+print(response.status_code)

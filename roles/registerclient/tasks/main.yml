@@ -4,8 +4,8 @@
   ansible.builtin.shell: |
     import requests
     
-    ipaddress = "{{ hostvars[prop_zabbix_web_name]['prop_ipaddress'] }}"
-    api = "{{ hostvars[prop_zabbix_server_name]['prop_zabbix_api'] }}"
+    ipaddress = "{{ hostvars[prop_zabbix.web_hostname]['prop_host']['ipaddress'] }}"
+    api = "{{ hostvars[prop_zabbix.server_hostname]['prop_zabbix']['api_token'] }}"
     url = f"https://{ipaddress}:8443/api_jsonrpc.php"
     headers = {"Authorization": f"Bearer {api}"}
     ca = "/etc/ssl/certs"
@@ -38,8 +38,8 @@
   ansible.builtin.shell: |
     import requests
     
-    ipaddress = "{{ hostvars[prop_zabbix_web_name]['prop_ipaddress'] }}"
-    api = "{{ hostvars[prop_zabbix_server_name]['prop_zabbix_api'] }}"
+    ipaddress = "{{ hostvars[prop_zabbix.web_hostname]['prop_host']['ipaddress'] }}"
+    api = "{{ hostvars[prop_zabbix.server_hostname]['prop_zabbix']['api_token'] }}"
     url = f"https://{ipaddress}:8443/api_jsonrpc.php"
     headers = {"Authorization": f"Bearer {api}"}
     ca = "/etc/ssl/certs"
@@ -75,8 +75,8 @@
     hostgroupsjsonstring = "{{ hostgroupsjsonstring.stdout }}".replace("'", '"')
     hostgroupjson = json.loads(hostgroupsjsonstring)
 
-    ipaddress = "{{ hostvars[prop_zabbix_web_name]['prop_ipaddress'] }}"
-    api = "{{ hostvars[prop_zabbix_server_name]['prop_zabbix_api'] }}"
+    ipaddress = "{{ hostvars[prop_zabbix.web_hostname]['prop_host']['ipaddress'] }}"
+    api = "{{ hostvars[prop_zabbix.server_hostname]['prop_zabbix']['api_token'] }}"
     url = f"https://{ipaddress}:8443/api_jsonrpc.php"
     headers = {"Authorization": f"Bearer {api}"}
     ca = "/etc/ssl/certs"
@@ -87,7 +87,7 @@
         "params": {
             "output": ["hostid", "name"],
             "filter": {
-                "name": "{{ prop_hostname }}"
+                "name": "{{ prop_host.hostname }}"
             }
         },
         "id": 1
@@ -103,13 +103,13 @@
         "jsonrpc": "2.0",
         "method": "host.create",
         "params": {
-            "host": "{{ prop_hostname }}",
+            "host": "{{ prop_host.hostname }}",
             "interfaces": [
                 {
                     "type": 1,
                     "main": 1,
                     "useip": 1,
-                    "ip": "{{ prop_ipaddress }}",
+                    "ip": "{{ prop_host.ipaddress }}",
                     "dns": "",
                     "port": "10050"
                 }
@@ -136,8 +136,8 @@
     hostgroupsjsonstring = "{{ hostgroupsjsonstring.stdout }}".replace("'", '"')
     hostgroupjson = json.loads(hostgroupsjsonstring)
 
-    ipaddress = "{{ hostvars[prop_zabbix_web_name]['prop_ipaddress'] }}"
-    api = "{{ hostvars[prop_zabbix_server_name]['prop_zabbix_api'] }}"
+    ipaddress = "{{ hostvars[prop_zabbix.web_hostname]['prop_host']['ipaddress'] }}"
+    api = "{{ hostvars[prop_zabbix.server_hostname]['prop_zabbix']['api_token'] }}"
     url = f"https://{ipaddress}:8443/api_jsonrpc.php"
     headers = {"Authorization": f"Bearer {api}"}
     ca = "/etc/ssl/certs"
@@ -148,7 +148,7 @@
         "params": {
             "output": ["hostid", "name"],
             "filter": {
-                "name": "{{ prop_hostname }}"
+                "name": "{{ prop_host.hostname }}"
             }
         },
         "id": 1
@@ -163,7 +163,7 @@
         "method": "host.update",
         "params": {
             "hostid": response.json().get("result")[0].get("hostid"),
-            "host": "{{ prop_hostname }}",
+            "host": "{{ prop_host.hostname }}",
             "groups": [],
             "templates": []
         },
