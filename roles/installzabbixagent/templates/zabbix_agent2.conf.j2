@@ -1,11 +1,11 @@
 PidFile=/run/zabbix/zabbix_agent2.pid
 LogFile=/var/log/zabbix/zabbix_agent2.log
 
-Server={{ prop_zabbix_server }}
+Server={{ prop_zabbix.server }}
 ListenIP=0.0.0.0
-ServerActive={{ prop_zabbix_server }}
+ServerActive={{ prop_zabbix.server }}
 
-Hostname={{ prop_hostname }}
+Hostname={{ prop_host.hostname }}
 
 PluginSocket=/run/zabbix/agent.plugin.sock
 ControlSocket=/run/zabbix/agent.sock
