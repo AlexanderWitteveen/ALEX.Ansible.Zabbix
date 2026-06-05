@@ -1,9 +1,9 @@
 PidFile=/run/zabbix/zabbix_agent2.pid
 LogFile=/var/log/zabbix/zabbix_agent2.log
 
-Server={{ prop_zabbix.server }}
+Server={{ prop_zabbix.server_address }}
 ListenIP=0.0.0.0
-ServerActive={{ prop_zabbix.server }}
+ServerActive={{ prop_zabbix.server_address }}
 
 Hostname={{ prop_host.hostname }}
 
